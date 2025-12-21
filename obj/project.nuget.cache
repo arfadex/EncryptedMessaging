@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "dgSpecHash": "4UIxu24F0Bg=",
+  "success": true,
+  "projectFilePath": "/home/astra/Desktop/EncryptedMessaging/EncryptedMessaging.csproj",
+  "expectedPackageFiles": [
+    "/home/astra/.nuget/packages/microsoft.aspnetcore.cryptography.internal/9.0.0/microsoft.aspnetcore.cryptography.internal.9.0.0.nupkg.sha512",
+    "/home/astra/.nuget/packages/microsoft.aspnetcore.cryptography.keyderivation/9.0.0/microsoft.aspnetcore.cryptography.keyderivation.9.0.0.nupkg.sha512",
+    "/home/astra/.nuget/packages/spectre.console/0.49.1/spectre.console.0.49.1.nupkg.sha512",
+    "/home/astra/.nuget/packages/stub.system.data.sqlite.core.netstandard/1.0.119/stub.system.data.sqlite.core.netstandard.1.0.119.nupkg.sha512",
+    "/home/astra/.nuget/packages/system.data.sqlite.core/1.0.119/system.data.sqlite.core.1.0.119.nupkg.sha512"
+  ],
+  "logs": []
+}
