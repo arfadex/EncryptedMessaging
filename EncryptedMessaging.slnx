@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/client/">
+    <Project Path="client/EncryptedMessaging.Client.csproj" />
+  </Folder>
+  <Folder Name="/server/">
+    <Project Path="server/EncryptedMessaging.Server.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/client/">
+    <Project Path="tests/client/EncryptedMessaging.Client.Tests/EncryptedMessaging.Client.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/server/">
+    <Project Path="tests/server/EncryptedMessaging.Server.Tests/EncryptedMessaging.Server.Tests.csproj" />
+  </Folder>
+</Solution>

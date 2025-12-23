@@ -1,0 +1,25 @@
+services:
+  server:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.server
+    container_name: encrypted-messaging-server
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - messaging-data:/app/data
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - DATABASE_PATH=/app/data/messaging.db
+      - JWT_SECRET_KEY=zQDoTGmB8FFDNstYncJ66xsOBCHEzvzPCer8DRP+Ctw=
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  messaging-data:
+    driver: local

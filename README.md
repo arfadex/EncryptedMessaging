@@ -1,131 +1,200 @@
-# 🔐 Encrypted Messaging System
+# Encrypted Messaging
 
-A secure terminal-based messaging application built with C# (.NET 9), featuring AES-256 encryption, PBKDF2 password hashing, and a beautiful Gruvbox-themed TUI.
+End-to-end encrypted messaging system with a terminal UI client and REST API server.
 
 ![.NET](https://img.shields.io/badge/.NET-9.0-512BD4?logo=dotnet)
-![C#](https://img.shields.io/badge/C%23-12.0-239120?logo=csharp)
 ![SQLite](https://img.shields.io/badge/SQLite-3-003B57?logo=sqlite)
-![License](https://img.shields.io/badge/license-MIT-green)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)
 
-## ✨ Features
+## Features
 
-- 🔒 **AES-256 Encryption** - All messages encrypted before storage
-- 🔑 **PBKDF2 Password Hashing** - Secure user authentication (100k iterations)
-- 📨 **Real-time Messaging** - Send, receive, edit, and delete messages
-- 👑 **Admin Panel** - User management with protected accounts
-- 🔔 **Notification System** - Badge indicators for unread messages
-- 🔄 **Manual Refresh** - Check for new messages on-demand
-- 🎨 **Gruvbox Theme** - Beautiful terminal interface with Spectre.Console
-- 💾 **SQLite Database** - Lightweight with ADO.NET
-- 🖥️ **Cross-platform** - Works on Windows, Linux, and macOS
+- **End-to-End Encryption**: Messages are encrypted client-side using AES-256. The server only stores ciphertext.
+- **Deterministic Key Derivation**: Keys derived from username + password using PBKDF2 (100k iterations). No key exchange needed.
+- **Real-time Notifications**: WebSocket-based message notifications when in active chat.
+- **Session Persistence**: Stay logged in between app restarts.
+- **Interactive Chat**: WhatsApp-style conversation view with message history navigation.
+- **Cross-Platform**: Client runs on Windows, Linux, and macOS.
 
-## 🚀 Quick Start
+## Architecture
+
+```
+┌─────────────────┐         HTTPS/WSS          ┌─────────────────┐
+│                 │ ◄──────────────────────────► │                 │
+│  TUI Client     │    Encrypted Messages       │  REST API       │
+│  (Spectre.Con)  │    (AES-256 ciphertext)     │  (ASP.NET)      │
+│                 │                              │                 │
+└─────────────────┘                              └────────┬────────┘
+                                                          │
+                                                          ▼
+                                                 ┌─────────────────┐
+                                                 │    SQLite DB    │
+                                                 │  (Encrypted     │
+                                                 │   messages)     │
+                                                 └─────────────────┘
+```
+
+## Quick Start
 
 ### Prerequisites
-- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
 
-### Installation
+- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+- Docker (for server deployment)
+
+### Run the Client
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/encrypted-messaging.git
-cd encrypted-messaging
-
-# Restore dependencies
-dotnet restore
-
-# Build and run
+cd client
 dotnet run
 ```
 
-## 🎮 Usage
+The client connects to `http://localhost:5000` by default. You can change the server URL from the main menu.
 
-### Regular User
-1. **Register** an account or **Login**
-2. Send encrypted messages to other users
-3. View received messages (auto-marked as read)
-4. Edit/delete your sent messages
-5. Use **🔄 Rafraîchir** to check for new messages
+### Run the Server Locally
 
-### Admin Access
-- **Username**: `admin`
-- **Password**: `admin`
+```bash
+cd server
+dotnet run
+```
 
-Admin capabilities:
-- Create users with the `ADMIN_` prefix
-- Modify/delete only admin-created accounts
-- View system statistics
-- Self-registered users are protected
+Server starts on `http://localhost:5000` by default.
 
-## 🏗️ Architecture
+### Deploy Server with Docker
+
+```bash
+cd docker
+docker compose up -d
+```
+
+Server runs on port 8080 inside the container, mapped to host port 8080.
+
+## Project Structure
 
 ```
 EncryptedMessaging/
-├── Models/          # User and Message entities
-├── Security/        # AES encryption & password hashing
-├── Data/            # SQLite repositories (ADO.NET)
-├── Services/        # Business logic
-└── UI/              # Spectre.Console interface
+├── client/                    # TUI client application
+│   ├── models/               # DTOs for API communication
+│   ├── security/             # Key derivation and encryption
+│   ├── services/             # API client, WebSocket, session manager
+│   └── ui/                   # Spectre.Console UI
+├── server/                    # REST API server
+│   ├── data/                 # SQLite repositories
+│   ├── models/               # Domain models and DTOs
+│   └── services/             # JWT and WebSocket services
+├── docker/                    # Docker deployment files
+├── scripts/                   # Build scripts
+│   └── build-client.sh       # Build standalone binaries
+└── tests/                     # Unit tests
 ```
 
-### Database Schema
+## Client Commands
 
-**Users Table**
-```sql
-- Id (INTEGER PRIMARY KEY)
-- Username (TEXT UNIQUE)
-- PasswordHash (TEXT)
-- CreatedAt (TEXT)
+### In Chat Mode
+
+| Command | Description |
+|---------|-------------|
+| `/up` | Load 20 older messages |
+| `/latest` | Jump to most recent messages |
+| `/search` | Search through conversation history |
+| `/back` | Exit chat and return to menu |
+
+### Navigation
+
+- Arrow keys to navigate menus
+- Type to search/filter in lists
+- Enter to select
+
+## Building Standalone Binaries
+
+```bash
+./scripts/build-client.sh
 ```
 
-**Messages Table**
-```sql
-- Id (INTEGER PRIMARY KEY)
-- SenderId (INTEGER FK)
-- ReceiverId (INTEGER FK)
-- EncryptedContent (TEXT)
-- SentAt (TEXT)
-- IsRead (INTEGER)
+Creates self-contained executables:
+- `dist/linux-x64/EncryptedMessaging`
+- `dist/win-x64/EncryptedMessaging.exe`
+
+## Security Model
+
+### Key Derivation
+
+```
+Password + Username
+        │
+        ▼
+    PBKDF2 (100k iterations, SHA256)
+        │
+        ▼
+    64-byte seed
+        │
+        ├──► SHA256 ──► Private Key (32 bytes)
+        │
+        └──► SHA256(Private Key) ──► Public Key (stored on server)
 ```
 
-## 🔐 Security
+### Shared Secret (for message encryption)
 
-- **Encryption**: AES-256-CBC with PKCS7 padding
-- **Password Hashing**: PBKDF2-HMAC-SHA256 (100k iterations, 128-bit salt)
-- **Message Storage**: All messages encrypted at rest
-- **Admin Protection**: User-created accounts cannot be modified by admin
-
-> ⚠️ **Note**: In production, encryption keys should be stored securely (Azure Key Vault, environment variables, etc.)
-
-## 📦 Dependencies
-
-```xml
-<PackageReference Include="Spectre.Console" Version="0.49.1" />
-<PackageReference Include="System.Data.SQLite.Core" Version="1.0.119" />
-<PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="9.0.0" />
+```
+Both parties compute:
+    sorted(PublicKeyA, PublicKeyB)
+            │
+            ▼
+        SHA256 ──► Shared Secret (32 bytes)
 ```
 
-## 🎨 Screenshots
+This ensures both sender and receiver derive the same key without exchanging secrets.
 
-![Screenshot](screenshot.jpg)
+### Message Encryption
 
+- Algorithm: AES-256-CBC
+- IV: Random 16 bytes (prepended to ciphertext)
+- Padding: PKCS7
 
-## 🤝 Contributing
+## API Endpoints
 
-Contributions are welcome! Feel free to:
-- Report bugs
-- Suggest features
-- Submit pull requests
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/register` | Register new user |
+| POST | `/api/auth/login` | Login and get JWT |
+| GET | `/api/users` | List all users |
+| GET | `/api/users/{username}` | Get user's public key |
+| POST | `/api/messages` | Send encrypted message |
+| GET | `/api/messages/received` | Get received messages |
+| GET | `/api/messages/sent` | Get sent messages |
+| PATCH | `/api/messages/{id}/read` | Mark message as read |
+| GET | `/health` | Health check |
 
-## 📄 License
+## Configuration
 
-This project is licensed under the MIT License.
+### Server Environment Variables
 
-## 🙏 Acknowledgments
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `JWT_SECRET_KEY` | **Yes (Production)** | Dev fallback | JWT signing key (min 32 chars). Generate with: `openssl rand -base64 32` |
+| `DATABASE_PATH` | No | `data/messages.db` | SQLite database path |
+| `Jwt:Issuer` | No | `EncryptedMessaging` | JWT issuer claim |
+| `Jwt:Audience` | No | `EncryptedMessagingUsers` | JWT audience claim |
+| `Jwt:AccessTokenExpirationMinutes` | No | `60` | Token lifetime in minutes |
 
-- Built with [Spectre.Console](https://spectreconsole.net/)
-- Inspired by secure messaging principles
-- Gruvbox color scheme
+**⚠️ Security Note**: In Production, the server will **fail to start** if `JWT_SECRET_KEY` is not set. In Development, a warning is logged and a dev-only fallback key is used.
 
----
+### Client Configuration
 
+Server URL can be changed at runtime from the login menu or by modifying `Config.cs`.
+
+## Development
+
+### Run Tests
+
+```bash
+dotnet test
+```
+
+### Build All Projects
+
+```bash
+dotnet build EncryptedMessaging.slnx
+```
+
+## License
+
+MIT
