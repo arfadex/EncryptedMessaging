@@ -197,4 +197,4 @@ dotnet build EncryptedMessaging.slnx
 
 ## License
 
-MIT
+GPL-3.0
